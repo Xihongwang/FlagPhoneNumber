@@ -17,11 +17,15 @@ open class FPNCountryListViewController: UITableViewController, UISearchResultsU
 
 	var results: [FPNCountry]?
 
+    var countrySections: [String] = []
+    var countryDictionaries: [String:[FPNCountry]] = [:]
+    
 	override open func viewDidLoad() {
 		super.viewDidLoad()
 
 		tableView.tableFooterView = UIView()
-
+        
+        self.sortCountry()
 		initSearchBarController()
 	}
 
@@ -61,39 +65,101 @@ open class FPNCountryListViewController: UITableViewController, UISearchResultsU
 		}
 	}
 
+    override open func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 30
+    }
+    
 	override open func numberOfSections(in tableView: UITableView) -> Int {
-		return 1
+        return countrySections.count
 	}
+    
+    override open func sectionIndexTitles(for tableView: UITableView) -> [String]? {
+        var sections : [String] = []
+        for title in countrySections {
+            if(title.count == 1){
+                sections.append(title)
+            }
+        }
+        return sections
+    }
+    
+    override open func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return countrySections[section].uppercased()
+    }
+    
+    override open func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
+        view.tintColor = UIColor.lightGray
+        let header = view as! UITableViewHeaderFooterView
+        header.textLabel?.font = UIFont.systemFont(ofSize: 14, weight: .light)
+        header.textLabel?.textColor = UIColor.black
+    }
+    
+    override open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if(section == 0){
+            return 3
+        }
+        let countryKey = countrySections[section]
+        if let countries = countryDictionaries[countryKey] {
+            return countries.count
+        }
+        return 0
+    }
 
-	override open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-		if searchController.isActive {
-			if let count = searchController.searchBar.text?.count, count > 0 {
-				return results?.count ?? 0
-			}
-		}
-		return repository?.countries.count ?? 0
-	}
+//	override open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+//		if searchController.isActive {
+//			if let count = searchController.searchBar.text?.count, count > 0 {
+//				return results?.count ?? 0
+//			}
+//		}
+//		return repository?.countries.count ?? 0
+//	}
 
 	override open func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 		let cell = UITableViewCell(style: .value1, reuseIdentifier: nil)
-		let country = getItem(at: indexPath)
+        let countryKey = countrySections[indexPath.section]
+        if let countries = countryDictionaries[countryKey.uppercased()] {
+            let country = countries[indexPath.row]
+            cell.imageView?.image = country.flag
+            cell.textLabel?.text = country.name
 
-		cell.imageView?.image = country.flag
-		cell.textLabel?.text = country.name
+            if showCountryPhoneCode {
+                cell.detailTextLabel?.text = country.phoneCode
+            }
+        }else if let countries = countryDictionaries["Common countries"] {
+            let country = countries[indexPath.row]
+            cell.imageView?.image = country.flag
+            cell.textLabel?.text = country.name
 
-		if showCountryPhoneCode {
-			cell.detailTextLabel?.text = country.phoneCode
-		}
+            if showCountryPhoneCode {
+                cell.detailTextLabel?.text = country.phoneCode
+            }
+        }
+//		let country = getItem(at: indexPath)
+//
+//		cell.imageView?.image = country.flag
+//		cell.textLabel?.text = country.name
+//
+//		if showCountryPhoneCode {
+//			cell.detailTextLabel?.text = country.phoneCode
+//		}
 
 		return cell
 	}
 
 	override open func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-		let country = getItem(at: indexPath)
+		//let country = getItem(at: indexPath)
 
 		tableView.deselectRow(at: indexPath, animated: true)
 
-		didSelect?(country)
+        let countryKey = countrySections[indexPath.section]
+        if let countries = countryDictionaries[countryKey.uppercased()] {
+            let country = countries[indexPath.row]
+            didSelect?(country)
+        }else if let countries = countryDictionaries["Common countries"] {
+            let country = countries[indexPath.row]
+            didSelect?(country)
+        }
+//		didSelect?(country)
 
 		searchController.isActive = false
 		searchController.searchBar.resignFirstResponder()
@@ -125,6 +191,7 @@ open class FPNCountryListViewController: UITableViewController, UISearchResultsU
 				}
 				return false
 			})
+            self.sortCountry()
 		}
 		tableView.reloadData()
 	}
@@ -134,4 +201,67 @@ open class FPNCountryListViewController: UITableViewController, UISearchResultsU
 	open func willDismissSearchController(_ searchController: UISearchController) {
 		results?.removeAll()
 	}
+    
+    private func sortCountry() {
+        if let countries = self.results{
+            for country in countries {
+                if(country.code.rawValue == "AW" || country.code.rawValue == "CW" || country.code.rawValue == "BQ"){
+                    
+                }else{
+                    let key = "\(country.name[country.name.startIndex])".uppercased()
+                    if var countryValue = self.countryDictionaries[key] {
+                        countryValue.append(country)
+                        self.countryDictionaries[key] = countryValue
+                    } else {
+                        self.countryDictionaries[key] = [country]
+                    }
+                    self.countrySections = [String](self.countryDictionaries.keys).sorted()
+                }
+            }
+            
+            self.countrySections.insert("Common countries", at: 0)
+            for country in countries {
+                if(country.code.rawValue == "AW" || country.code.rawValue == "CW" || country.code.rawValue == "BQ"){
+                    if var countryValue = self.countryDictionaries["Common countries"] {
+                        countryValue.append(country)
+                        self.countryDictionaries["Common countries"] = countryValue
+                    } else {
+                        self.countryDictionaries["Common countries"] = [country]
+                    }
+                }
+            }
+            self.tableView.reloadData()
+        }else{
+            if let countries = self.repository?.countries{
+                for country in countries {
+                    if(country.code.rawValue == "AW" || country.code.rawValue == "CW" || country.code.rawValue == "BQ"){
+                        
+                    }else{
+                        let key = "\(country.name[country.name.startIndex])".uppercased()
+                        if var countryValue = self.countryDictionaries[key] {
+                            countryValue.append(country)
+                            self.countryDictionaries[key] = countryValue
+                        } else {
+                            self.countryDictionaries[key] = [country]
+                        }
+                        self.countrySections = [String](self.countryDictionaries.keys).sorted()
+                    }
+                }
+                
+                self.countrySections.insert("Common countries", at: 0)
+                for country in countries {
+                    if(country.code.rawValue == "AW" || country.code.rawValue == "CW" || country.code.rawValue == "BQ"){
+                        if var countryValue = self.countryDictionaries["Common countries"] {
+                            countryValue.append(country)
+                            self.countryDictionaries["Common countries"] = countryValue
+                        } else {
+                            self.countryDictionaries["Common countries"] = [country]
+                        }
+                    }
+                }
+                
+                self.tableView.reloadData()
+            }
+        }
+    }
 }
