@@ -70,7 +70,7 @@ open class FPNCountryListViewController: UITableViewController, UISearchResultsU
     }
     
 	override open func numberOfSections(in tableView: UITableView) -> Int {
-        return countrySections.count
+        return 1//countrySections.count
 	}
     
     override open func sectionIndexTitles(for tableView: UITableView) -> [String]? {
@@ -84,7 +84,7 @@ open class FPNCountryListViewController: UITableViewController, UISearchResultsU
     }
     
     override open func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return countrySections[section].uppercased()
+        return ""//countrySections[section].uppercased()
     }
     
     override open func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
