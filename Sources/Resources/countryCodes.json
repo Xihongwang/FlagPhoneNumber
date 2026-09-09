@@ -910,7 +910,7 @@
  "code": "LC"
  },
  {
- "name": "Saint Martin",
+ "name": "Saint Maarten",
  "dial_code": "+590",
  "code": "MF"
  },
@@ -1033,6 +1033,11 @@
  "name": "Sweden",
  "dial_code": "+46",
  "code": "SE"
+ },
+ {
+ "name": "Sint Maarten",
+ "dial_code": "+1",
+ "code": "SX"
  },
  {
  "name": "Switzerland",
