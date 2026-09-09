@@ -248,4 +248,5 @@ public enum FPNCountryCode: String {
     case VI = "VI"
     case AX = "AX"
     case BQ = "BQ" //Bonaire
+    case SX = "SX" //Sint Maarten
 }
