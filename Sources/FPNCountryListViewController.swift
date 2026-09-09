@@ -204,7 +204,7 @@ open class FPNCountryListViewController: UITableViewController, UISearchResultsU
             
             self.countrySections.insert("COMMON COUNTRIES", at: 0)
             for country in countries {
-                if(country.code.rawValue == "AW" || country.code.rawValue == "CW" || country.code.rawValue == "BQ"){
+                if(country.code.rawValue == "AW" || country.code.rawValue == "CW" || country.code.rawValue == "BQ" || country.code.rawValue == "MF" || country.code.rawValue == "SX"){
                     if var countryValue = self.countryDictionaries["COMMON COUNTRIES"] {
                         countryValue.append(country)
                         self.countryDictionaries["COMMON COUNTRIES"] = countryValue
